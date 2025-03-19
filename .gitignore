@@ -1,0 +1,8 @@
+build
+bin
+*.log
+*.o
+*.a
+*.so
+*.dylib
+*.dSYM
