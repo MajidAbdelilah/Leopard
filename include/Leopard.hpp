@@ -29,6 +29,8 @@
 #include <memory>
 #include <typeindex>
 #include <typeinfo>
+#include <unordered_map>
+#include <functional>
 
 
 enum command_type {
@@ -91,6 +93,12 @@ public:
     }
     
     Leopard() {
+        // Register common types
+        register_type_handler<int>();
+        register_type_handler<float>();
+        register_type_handler<double>();
+        // Add more types as needed
+        
         thread_count = std::thread::hardware_concurrency();
         for (int i = 0; i < thread_count; i++) {
             threads[i] = std::thread([this, i]() {
@@ -111,19 +119,24 @@ public:
         }
     }
     
+    // Register a type handler for a specific type
+    template <typename T>
+    void register_type_handler() {
+        type_handlers[typeid(T)] = [this](std::shared_ptr<command_base> cmd) {
+            process_command<T>(std::static_pointer_cast<command<T>>(cmd));
+        };
+    }
+
     // Function to determine the type at runtime and process the command
     void process_command_runtime(std::shared_ptr<command_base> cmd) {
-        // Use the stored type_info to determine the actual type
-        if (cmd->type_info == typeid(int)) {
-            process_command<int>(std::static_pointer_cast<command<int>>(cmd));
+        // Look up the handler for this type
+        auto handler_it = type_handlers.find(cmd->type_info);
+        if (handler_it != type_handlers.end()) {
+            // Call the handler function
+            handler_it->second(cmd);
+        } else {
+            std::cerr << "Unknown type: " << cmd->type_info.name() << std::endl;
         }
-        else if (cmd->type_info == typeid(float)) {
-            process_command<float>(std::static_pointer_cast<command<float>>(cmd));
-        }
-        else if (cmd->type_info == typeid(double)) {
-            process_command<double>(std::static_pointer_cast<command<double>>(cmd));
-        }
-        // Add more types as needed
     }
     
     // Function to process the next command in the queue
@@ -168,6 +181,7 @@ private:
     std::thread threads[512];
     int thread_count = 0;
     std::deque<std::shared_ptr<command_base>> commands;
+    std::unordered_map<std::type_index, std::function<void(std::shared_ptr<command_base>)>> type_handlers;
 };
 
 // Now define the parallel_vector template with the Leopard class available
