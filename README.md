@@ -68,7 +68,7 @@ int main() {
     
     // Conditional parallel execution
     vec[0] = 0; // Set condition
-    Lp_if_parallel(!vec, []() {
+    Lp_if_parallel(vec == 0, []() {
         // This will be executed in parallel if condition is met
         std::cout << "Executing in parallel!" << std::endl;
     });
