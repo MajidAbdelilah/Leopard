@@ -67,8 +67,8 @@ int main() {
     Lp_parallel_vector<int> result = vec + vec2;
     
     // Conditional parallel execution
-    vec[0] = 1; // Set condition
-    Lp_if_parallel(vec, []() {
+    vec[0] = 0; // Set condition
+    Lp_if_parallel(!vec, []() {
         // This will be executed in parallel if condition is met
         std::cout << "Executing in parallel!" << std::endl;
     });
