@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstddef>
 #include <thread>
 #include <vector>
@@ -23,6 +25,168 @@ public:
             }
         }
     };
+    // criticall part of the class for sycl compatibilty
+    void assign(size_t count, const T& value) {
+        this->clear();
+        this->resize(count, value);
+    }
+
+    template< class InputIt >
+    void assign( InputIt first, InputIt last ) {
+        this->clear();
+        this->insert(this->begin(), first, last);
+    }
+
+    void assign( std::initializer_list<T> ilist )
+    {
+        this->clear();
+        this->insert(this->begin(), ilist.begin(), ilist.end());
+    }
+
+    T& at( size_t pos )
+    {
+        return std::vector<T>::at(pos);
+    }
+
+    const T& at( size_t pos ) const
+    {
+        return std::vector<T>::at(pos);
+    }
+
+    typename std::vector<T>::reference operator[]( size_t pos )
+    {
+        return std::vector<T>::operator[](pos);
+    }
+
+    typename std::vector<T>::const_reference operator[]( size_t pos ) const
+    {
+        return std::vector<T>::operator[](pos);
+    }
+
+    T& front()
+    {
+        return std::vector<T>::front();
+    }
+
+    const T& front() const
+    {
+        return std::vector<T>::front();
+    }
+
+    T& back()
+    {
+        return std::vector<T>::back();
+    }
+
+    const T& back() const
+    {
+        return std::vector<T>::back();
+    }
+
+    T* data()
+    {
+        return std::vector<T>::data();
+    }
+
+    const T* data() const
+    {
+        return std::vector<T>::data();
+    }
+
+    size_t size() const
+    {
+        return std::vector<T>::size();
+    }
+
+    typename std::vector<T>::iterator begin()
+    {
+        return std::vector<T>::begin();
+    }
+
+    typename std::vector<T>::const_iterator begin() const
+   {
+        return std::vector<T>::begin();
+   }
+
+    typename std::vector<T>::const_iterator cbegin() const
+    {
+        return std::vector<T>::cbegin();
+    }
+
+    typename std::vector<T>::iterator end()
+    {
+        return std::vector<T>::end();
+    }
+
+    typename std::vector<T>::const_iterator end() const
+    {
+        return std::vector<T>::end();
+    }
+
+    typename std::vector<T>::const_iterator cend() const
+    {
+        return std::vector<T>::cend();
+    }
+
+    typename std::vector<T>::reverse_iterator rbegin()
+    {
+        return std::vector<T>::rbegin();
+    }
+
+    typename std::vector<T>::const_reverse_iterator rbegin() const
+    {
+        return std::vector<T>::rbegin();
+    }
+
+    typename std::vector<T>::const_reverse_iterator crbegin() const
+    {
+        return std::vector<T>::crbegin();
+    }
+
+    typename std::vector<T>::reverse_iterator rend()
+    {
+        return std::vector<T>::rend();
+    }
+
+    typename std::vector<T>::const_reverse_iterator rend() const
+    {
+        return std::vector<T>::rend();
+    }
+
+    typename std::vector<T>::const_reverse_iterator crend() const
+    {
+        return std::vector<T>::crend();
+    }
+
+    bool empty() const
+    {
+        return std::vector<T>::empty();
+    }
+
+    typename std::vector<T>::size_type max_size() const
+    {
+        return std::vector<T>::max_size();
+    }
+
+    void reserve( typename std::vector<T>::size_type new_cap )
+    {
+        std::vector<T>::reserve(new_cap);
+    }
+
+    typename std::vector<T>::size_type capacity() const
+    {
+        return std::vector<T>::capacity();
+    }
+
+    void shrink_to_fit()
+    {
+        std::vector<T>::shrink_to_fit();
+    }
+
+
+
+    // criticall part of the class for sycl compatibilty
+
     Lp_parallel_vector(size_t num_elements) : std::vector<T>(num_elements) {
         num_thread = std::thread::hardware_concurrency();
     };
@@ -771,6 +935,7 @@ private:
     size_t num_thread;
     std::thread threads[128];
 };
+
 template<typename T>
 static void Lp_if_parallel(Lp_parallel_vector<T> vec, std::function<void(size_t)> func)
 {
