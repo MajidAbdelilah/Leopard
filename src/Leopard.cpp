@@ -1,4 +1,5 @@
 #include "../include/Leopard.hpp"
+#include <cstddef>
 #include <iostream>
 #include <chrono>
 #include <cstdlib>
@@ -16,12 +17,12 @@ void stress_test_thread_safety(int iterations) {
         test_vec.fill(i);
         
         // Apply a function to it
-        test_vec.fill([](int& val) { return val * 2; });
+        test_vec.fill([](int& val, size_t index) { (void)index; return val * 2; });
         
         // Test Lp_if_parallel
         if (i % 10 == 0) { // Only do this occasionally to save time
             test_vec[0] = 1; // Set first element to true
-            Lp_if_parallel(test_vec, []() { /* Do nothing */ });
+            Lp_if_parallel(test_vec, [](size_t index) { (void)index;/* Do nothing */ });
         }
         
         // Vector will be destroyed at end of loop iteration
@@ -70,7 +71,7 @@ void test_joinable_fixes() {
     {
         Lp_parallel_vector<int> vec(10);
         vec[0] = 1; // Set first element to true
-        Lp_if_parallel(vec, []() { /* Do nothing */ });
+        Lp_if_parallel(vec, [](size_t index) {(void)index; /* Do nothing */ });
         // Destructor will be called here
     }
     std::cout << "Test 4 passed!" << std::endl;
@@ -92,7 +93,7 @@ int main()
     
     // Test fill with function
     std::cout << "Testing fill with function..." << std::endl;
-    vec.fill([](int& val) { return val * 2; });
+    vec.fill([](int& val, size_t index) { (void)index; return val * 2; });
     std::cout << "First element after function: " << vec[0] << std::endl;
     std::cout << "Last element after function: " << vec[vec.size()-1] << std::endl;
     
@@ -100,7 +101,7 @@ int main()
     std::cout << "Testing Lp_if_parallel..." << std::endl;
     Lp_parallel_vector<int> small_vec(10);
     small_vec[0] = 1; // Set first element to true
-    Lp_if_parallel(small_vec, []() { std::cout << "Hello from parallel function!" << std::endl; });
+    Lp_if_parallel(small_vec, [](size_t index) { (void)index;std::cout << "Hello from parallel function!" << std::endl; });
     
     // Run specific test for joinable fixes
     test_joinable_fixes();
@@ -112,12 +113,13 @@ int main()
     std::cout << "\nTesting parallel quicksort..." << std::endl;
     
     // Create a vector with random values
-    Lp_parallel_vector<int> sort_vec(100000000);
+    Lp_parallel_vector<int> sort_vec(10000);
     std::cout << "Filling vector with random values..." << std::endl;
     
     // Use a lambda to fill with random values
-    sort_vec.fill([](int& val) { 
-        val = std::rand() % 100000000; 
+    sort_vec.fill([](int& val, size_t index) { 
+        (void)index;
+        val = std::rand() % 10000; 
         return val;
     });
     
@@ -161,5 +163,34 @@ int main()
     std::cout << "Sorting completed in " << elapsed.count() << " seconds" << std::endl;
     
     std::cout << "All tests completed successfully!" << std::endl;
+
+    // Example
+    {
+        // Create a parallel vector
+        Lp_parallel_vector<int> tvec(1000);
+        
+        // Fill the vector with a value
+        tvec.fill(42);
+        
+        // Apply a function to each element
+        tvec.fill([](int& val, size_t index) { (void)index; return val * 2 ; });
+        
+        // Perform parallel operations
+        Lp_parallel_vector<int> tvec2(1000);
+        tvec2.fill(10);
+        
+        // Add two vectors
+        Lp_parallel_vector<int> result = tvec + tvec2;
+        
+        // Conditional parallel execution
+        tvec[0] = 0; // Set condition
+        tvec[15] = 0; // Set condition
+        Lp_if_parallel(tvec == 0, [tvec](size_t index) {
+            // This will be executed in parallel if condition is met
+            std::cout << "Executing in parallel!" << std::endl;
+            std::cout << tvec[index] << " at index " <<index << std::endl;  
+        });
+    }
+    
     return 0;
 }

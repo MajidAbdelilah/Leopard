@@ -12,7 +12,8 @@ Leopard is a C++ library that provides a parallel vector implementation (`Lp_par
 - Thread-safe implementation
 - Automatic thread management
 - Fill methods for initializing vectors
-- Conditional parallel execution with `Lp_if_parallel`
+- Enhanced comparison operators returning boolean vectors
+- Improved conditional parallel execution with `Lp_if_parallel`
 - Parallel quicksort implementation with `Lp_sort`
 
 ## Parallel Quicksort
@@ -29,16 +30,75 @@ The library includes a parallel quicksort implementation (`Lp_sort`) that effici
 
 ```cpp
 // Create a parallel vector
-Lp_parallel_vector<int> vec(1000);
+Lp_parallel_vector<int> vec(10000);
 
 // Fill it with random values
 vec.fill([](int& val) { 
-    val = std::rand() % 1000; 
+    val = std::rand() % 10000; 
     return val;
 });
 
 // Sort in ascending order
 Lp_sort(vec, std::function<bool(int, int)>([](int a, int b) { return a < b; }));
+
+// Sort in descending order
+Lp_sort(vec, std::function<bool(int, int)>([](int a, int b) { return a > b; }));
+```
+
+## Enhanced Comparison Operators
+
+The library now provides enhanced comparison operators that return boolean vectors (`Lp_parallel_vector<bool>`) instead of vectors of the original type. This allows for more intuitive and efficient conditional operations.
+
+Key improvements:
+
+1. All comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`) now return `Lp_parallel_vector<bool>`
+2. Added scalar comparison operators to compare each element with a single value
+3. Results can be directly used with `Lp_if_parallel` for conditional execution
+
+### Usage Example
+
+```cpp
+// Create a parallel vector
+Lp_parallel_vector<int> vec(1000);
+vec.fill(42);
+
+// Compare with scalar value (returns a boolean vector)
+Lp_parallel_vector<bool> result = vec == 42;
+
+// Use with Lp_if_parallel
+Lp_if_parallel(result, [](size_t index) {
+    std::cout << "Element at index " << index << " equals 42" << std::endl;
+});
+
+// Combine operations
+Lp_if_parallel(vec > 40 && vec < 50, [](size_t index) {
+    std::cout << "Element at index " << index << " is between 40 and 50" << std::endl;
+});
+```
+
+## Improved Lp_if_parallel
+
+The `Lp_if_parallel` function has been enhanced to provide more flexibility and information during parallel execution:
+
+1. Now accepts a function that takes the current index as a parameter (`std::function<void(size_t)>`)
+2. Passes by value instead of reference for better compatibility with temporary vectors
+3. Works seamlessly with the new boolean vectors from comparison operators
+
+### Usage Example
+
+```cpp
+Lp_parallel_vector<int> vec(1000);
+vec.fill(42);
+
+// Execute function only for elements that are equal to 42
+Lp_if_parallel(vec == 42, [&vec](size_t index) {
+    std::cout << "Element at index " << index << ": " << vec[index] << std::endl;
+});
+
+// Execute function only for elements that are not equal to 0
+Lp_if_parallel(!vec, [](size_t index) {
+    std::cout << "Non-zero element found at index " << index << std::endl;
+});
 ```
 
 ## Thread Safety

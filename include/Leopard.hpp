@@ -77,12 +77,12 @@ public:
         fill(value);
     }
 
-    void fill(std::function<T(T&)> func) {
+    void fill(std::function<T(T&, size_t)> func) {
         for(size_t i = 0; i < this->num_thread; i++)
         {
             threads[i] = std::thread([this, func, i]() {
                 for(size_t j = i; j < this->size(); j+= this->num_thread)
-                    this->at(j) = func(this->at(j));
+                    this->at(j) = func(this->at(j), j);
             });
         }
         for(size_t i = 0; i < this->num_thread; i++) {
@@ -92,7 +92,7 @@ public:
         }
     }
 
-    void fill(std::function<T(T&)> func, size_t size)
+    void fill(std::function<T(T&, size_t)> func, size_t size)
     {
         this->resize(size);
         fill(func);
@@ -231,9 +231,9 @@ public:
         }
         return result;        
     };
-    Lp_parallel_vector<T> operator==(const Lp_parallel_vector<T>& other)
+    Lp_parallel_vector<bool> operator==(const Lp_parallel_vector<T>& other)
     {
-        Lp_parallel_vector<T> result;
+        Lp_parallel_vector<bool> result;
         auto min_size = std::min(this->size(), other.size());
         result.resize(min_size);
         for(size_t i = 0; i < this->num_thread; i++)
@@ -250,9 +250,27 @@ public:
         }
         return result;        
     };
-    Lp_parallel_vector<T> operator!=(const Lp_parallel_vector<T>& other)
+    Lp_parallel_vector<bool> operator==(const T& other)
     {
-        Lp_parallel_vector<T> result;
+        Lp_parallel_vector<bool> result;
+        result.resize(this->size());
+        for(size_t i = 0; i < this->num_thread; i++)
+        {
+            threads[i] = std::thread([this, &result, other, i]() {
+                for(size_t j = i; j < this->size(); j+= this->num_thread)
+                    result[j] = this->at(j) == other;
+            });
+        }
+        for(size_t i = 0; i < this->num_thread; i++) {
+            if(threads[i].joinable()) {
+                threads[i].join();
+            }
+        }
+        return result;        
+    };
+    Lp_parallel_vector<bool> operator!=(const Lp_parallel_vector<T>& other)
+    {
+        Lp_parallel_vector<bool> result;
         auto min_size = std::min(this->size(), other.size());
         result.resize(min_size);
         for(size_t i = 0; i < this->num_thread; i++)
@@ -269,9 +287,27 @@ public:
         }
         return result;        
     };
-    Lp_parallel_vector<T> operator<(const Lp_parallel_vector<T>& other)
+    Lp_parallel_vector<bool> operator!=(const T& other)
     {
-        Lp_parallel_vector<T> result;
+        Lp_parallel_vector<bool> result;
+        result.resize(this->size());
+        for(size_t i = 0; i < this->num_thread; i++)
+        {
+            threads[i] = std::thread([this, &result, other, i]() {
+                for(size_t j = i; j < this->size(); j+= this->num_thread)
+                    result[j] = this->at(j) != other;
+            });
+        }
+        for(size_t i = 0; i < this->num_thread; i++) {
+            if(threads[i].joinable()) {
+                threads[i].join();
+            }
+        }
+        return result;        
+    };
+    Lp_parallel_vector<bool> operator<(const Lp_parallel_vector<T>& other)
+    {
+        Lp_parallel_vector<bool> result;
         auto min_size = std::min(this->size(), other.size());
         result.resize(min_size);
         for(size_t i = 0; i < this->num_thread; i++)
@@ -288,9 +324,27 @@ public:
         }
         return result;        
     };
-    Lp_parallel_vector<T> operator>(const Lp_parallel_vector<T>& other)
+    Lp_parallel_vector<bool> operator<(const T& other)
     {
-        Lp_parallel_vector<T> result;
+        Lp_parallel_vector<bool> result;
+        result.resize(this->size());
+        for(size_t i = 0; i < this->num_thread; i++)
+        {
+            threads[i] = std::thread([this, &result, other, i]() {
+                for(size_t j = i; j < this->size(); j+= this->num_thread)
+                    result[j] = this->at(j) < other;
+            });
+        }
+        for(size_t i = 0; i < this->num_thread; i++) {
+            if(threads[i].joinable()) {
+                threads[i].join();
+            }
+        }
+        return result;        
+    };
+    Lp_parallel_vector<bool> operator>(const Lp_parallel_vector<T>& other)
+    {
+        Lp_parallel_vector<bool> result;
         auto min_size = std::min(this->size(), other.size());
         result.resize(min_size);
         for(size_t i = 0; i < this->num_thread; i++)
@@ -307,9 +361,27 @@ public:
         }
         return result;        
     };
-    Lp_parallel_vector<T> operator<=(const Lp_parallel_vector<T>& other)
+    Lp_parallel_vector<bool> operator>(const T& other)
     {
-        Lp_parallel_vector<T> result;
+        Lp_parallel_vector<bool> result;
+        result.resize(this->size());
+        for(size_t i = 0; i < this->num_thread; i++)
+        {
+            threads[i] = std::thread([this, &result, other, i]() {
+                for(size_t j = i; j < this->size(); j+= this->num_thread)
+                    result[j] = this->at(j) > other;
+            });
+        }
+        for(size_t i = 0; i < this->num_thread; i++) {
+            if(threads[i].joinable()) {
+                threads[i].join();
+            }
+        }
+        return result;        
+    };
+    Lp_parallel_vector<bool> operator<=(const Lp_parallel_vector<T>& other)
+    {
+        Lp_parallel_vector<bool> result;
         auto min_size = std::min(this->size(), other.size());
         result.resize(min_size);
         for(size_t i = 0; i < this->num_thread; i++)
@@ -326,9 +398,27 @@ public:
         }
         return result;        
     };
-    Lp_parallel_vector<T> operator>=(const Lp_parallel_vector<T>& other)
+    Lp_parallel_vector<bool> operator<=(const T& other)
     {
-        Lp_parallel_vector<T> result;
+        Lp_parallel_vector<bool> result;
+        result.resize(this->size());
+        for(size_t i = 0; i < this->num_thread; i++)
+        {
+            threads[i] = std::thread([this, &result, other, i]() {
+                for(size_t j = i; j < this->size(); j+= this->num_thread)
+                    result[j] = this->at(j) <= other;
+            });
+        }
+        for(size_t i = 0; i < this->num_thread; i++) {
+            if(threads[i].joinable()) {
+                threads[i].join();
+            }
+        }
+        return result;        
+    };
+    Lp_parallel_vector<bool> operator>=(const Lp_parallel_vector<T>& other)
+    {
+        Lp_parallel_vector<bool> result;
         auto min_size = std::min(this->size(), other.size());
         result.resize(min_size);
         for(size_t i = 0; i < this->num_thread; i++)
@@ -345,6 +435,25 @@ public:
         }
         return result;        
     };
+    Lp_parallel_vector<bool> operator>=(const T& other)
+    {
+        Lp_parallel_vector<bool> result;
+        result.resize(this->size());
+        for(size_t i = 0; i < this->num_thread; i++)
+        {
+            threads[i] = std::thread([this, &result, other, i]() {
+                for(size_t j = i; j < this->size(); j+= this->num_thread)
+                    result[j] = this->at(j) >= other;
+            });
+        }
+        for(size_t i = 0; i < this->num_thread; i++) {
+            if(threads[i].joinable()) {
+                threads[i].join();
+            }
+        }
+        return result;        
+    };
+
     Lp_parallel_vector<T> operator&(Lp_parallel_vector<T>& other)
     {
         Lp_parallel_vector<T> result;
@@ -663,7 +772,7 @@ private:
     std::thread threads[128];
 };
 template<typename T>
-static void Lp_if_parallel(Lp_parallel_vector<T>& vec, std::function<void(void)> func)
+static void Lp_if_parallel(Lp_parallel_vector<T> vec, std::function<void(size_t)> func)
 {
     std::thread threads[128];
     for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
@@ -671,7 +780,7 @@ static void Lp_if_parallel(Lp_parallel_vector<T>& vec, std::function<void(void)>
         threads[i] = std::thread([&vec, i, &func]() {
             for(size_t j = i; j < vec.size(); j+= std::thread::hardware_concurrency())
                 if(vec[j])
-                    func();
+                    func(j);
         });
     }
     for(size_t i = 0; i < std::thread::hardware_concurrency(); i++) {
@@ -681,11 +790,11 @@ static void Lp_if_parallel(Lp_parallel_vector<T>& vec, std::function<void(void)>
     }
 }
 template<typename T>
-static void Lp_if_single_threaded(Lp_parallel_vector<T>& vec, std::function<void()> func)
+static void Lp_if_single_threaded(Lp_parallel_vector<T>& vec, std::function<void(size_t)> func)
 {
     for(size_t j = 0; j < vec.size(); j++)
         if(vec[j])
-            func();
+            func(j);
 }
 template<typename T>
 void Lp_sequential_quicksort(std::vector<T>& arr, size_t low, size_t high, std::function<bool(T, T)> comp) {
