@@ -93,7 +93,7 @@ The library includes comprehensive tests to ensure thread safety and correct fun
 1. Basic constructor and destructor tests
 2. Fill method tests
 3. Thread safety tests
-4. Joinable thread fix tests
+4. Joinable thread tests
 5. Stress tests
 
 ## License
