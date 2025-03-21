@@ -33,6 +33,10 @@ else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
+# Temporarily disabled due to ThreadSanitizer compatibility issues
+# target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=thread)
+# target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=thread)
+
 # Installation
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
