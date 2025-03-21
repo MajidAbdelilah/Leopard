@@ -13,6 +13,33 @@ Leopard is a C++ library that provides a parallel vector implementation (`Lp_par
 - Automatic thread management
 - Fill methods for initializing vectors
 - Conditional parallel execution with `Lp_if_parallel`
+- Parallel quicksort implementation with `Lp_sort`
+
+## Parallel Quicksort
+
+The library includes a parallel quicksort implementation (`Lp_sort`) that efficiently sorts elements in a `Lp_parallel_vector` using multiple threads. Key features include:
+
+1. Task-based parallelism with a thread pool
+2. Efficient work distribution using a task queue
+3. Automatic fallback to sequential sort for small partitions
+4. Thread synchronization using mutex and condition variables
+5. Optimized for multi-core processors
+
+### Usage Example
+
+```cpp
+// Create a parallel vector
+Lp_parallel_vector<int> vec(1000);
+
+// Fill it with random values
+vec.fill([](int& val) { 
+    val = std::rand() % 1000; 
+    return val;
+});
+
+// Sort in ascending order
+Lp_sort(vec, std::function<bool(int, int)>([](int a, int b) { return a < b; }));
+```
 
 ## Thread Safety
 

@@ -1,6 +1,7 @@
 #include "../include/Leopard.hpp"
 #include <iostream>
 #include <chrono>
+#include <cstdlib>
 
 // Function to test thread safety by creating and destroying many vectors
 void stress_test_thread_safety(int iterations) {
@@ -106,6 +107,58 @@ int main()
     
     // Run stress test for thread safety
     stress_test_thread_safety(1000);
+    
+    // Test the parallel quicksort implementation
+    std::cout << "\nTesting parallel quicksort..." << std::endl;
+    
+    // Create a vector with random values
+    Lp_parallel_vector<int> sort_vec(100000000);
+    std::cout << "Filling vector with random values..." << std::endl;
+    
+    // Use a lambda to fill with random values
+    sort_vec.fill([](int& val) { 
+        val = std::rand() % 100000000; 
+        return val;
+    });
+    
+    // Print first few elements before sorting
+    std::cout << "First 10 elements before sorting:" << std::endl;
+    for (size_t i = 0; i < 10 && i < sort_vec.size(); i++) {
+        std::cout << sort_vec[i] << " ";
+    }
+    std::cout << std::endl;
+    
+    // Sort the vector in ascending order
+    std::cout << "Sorting vector in ascending order..." << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    Lp_sort(sort_vec, std::function<bool(int, int)>([](int a, int b) { return a < b; }));
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    
+    // Print first few elements after sorting
+    std::cout << "First 10 elements after sorting:" << std::endl;
+    for (size_t i = 0; i < 10 && i < sort_vec.size(); i++) {
+        std::cout << sort_vec[i] << " ";
+    }
+    std::cout << std::endl;
+    
+    // Verify that the vector is sorted
+    bool is_sorted = true;
+    for (size_t i = 1; i < sort_vec.size(); i++) {
+        if (sort_vec[i] < sort_vec[i-1]) {
+            is_sorted = false;
+            std::cout << "Error: Vector is not sorted at index " << i << std::endl;
+            break;
+        }
+    }
+    
+    if (is_sorted) {
+        std::cout << "Vector is correctly sorted!" << std::endl;
+    }
+    
+    std::cout << "Sorting completed in " << elapsed.count() << " seconds" << std::endl;
     
     std::cout << "All tests completed successfully!" << std::endl;
     return 0;
