@@ -110,30 +110,30 @@ The library ensures thread safety by:
 #include <iostream>
 
 int main() {
-    // Create a parallel vector
-    Lp_parallel_vector<int> vec(1000);
+   // Create a parallel vector
+    Lp_parallel_vector<int> tvec(1000);
     
     // Fill the vector with a value
-    vec.fill(42);
+    tvec.fill(42);
     
     // Apply a function to each element
-    vec.fill([](int& val) { return val * 2; });
+    tvec.fill([](int& val, size_t index) { (void)index; return val * 2 ; });
     
     // Perform parallel operations
-    Lp_parallel_vector<int> vec2(1000);
-    vec2.fill(10);
+    Lp_parallel_vector<int> tvec2(1000);
+    tvec2.fill(10);
     
     // Add two vectors
-    Lp_parallel_vector<int> result = vec + vec2;
+    Lp_parallel_vector<int> result = tvec + tvec2;
     
     // Conditional parallel execution
-    vec[0] = 0; // Set condition
-    Lp_if_parallel(vec == 0, []() {
+    tvec[0] = 0; // Set condition
+    tvec[15] = 0; // Set condition
+    Lp_if_parallel(tvec == 0, [tvec](size_t index) {
         // This will be executed in parallel if condition is met
         std::cout << "Executing in parallel!" << std::endl;
+        std::cout << tvec[index] << " at index " <<index << std::endl;  
     });
-    
-    return 0;
 }
 ```
 
